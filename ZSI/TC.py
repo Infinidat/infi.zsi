@@ -619,7 +619,7 @@ class Any(TypeCode):
             if self.aslist:
                 array = elt.createAppendElement(ns, n)
                 array.setAttributeType(SOAP.ENC, "Array")
-                array.setAttributeNS(self.nspname, 'SOAP-ENC:arrayType', 
+                array.setAttributeNS(self.nspname, 'soapenc:arrayType', 
                     "xsd:anyType[" + str(len(pyobj)) + "]" )
                 for o in pyobj:
                     #TODO maybe this should take **self.kwargs...
@@ -669,7 +669,7 @@ class Any(TypeCode):
             if pyobj is None:
                 self.serialize_as_nil(elt.createAppendElement(ns, n))
             elif type(pyobj) != types.InstanceType:
-                raise EvaluateException('''Any can't serialize ''' + \
+                raise EvaluateException("""Any can't serialize """ + \
                         repr(pyobj))
             else:
                 self.serialize(elt, sw, pyobj.__dict__, **kw)
@@ -682,7 +682,7 @@ class Any(TypeCode):
                 if "typed" not in kw:
                     kw['typed'] = False
             elif tag:
-                if tag.find(':') == -1: tag = 'SOAP-ENC:' + tag
+                if tag.find(':') == -1: tag = 'soapenc:' + tag
                 kw['name'] = tag
                 kw['typed'] = False
 
@@ -1211,12 +1211,12 @@ class Boolean(SimpleType):
 
 #XXX NOT FIXED YET
 class XML(TypeCode):
-    '''Opaque XML which shouldn't be parsed.
+    """Opaque XML which shouldn't be parsed.
         comments -- preserve comments
         inline -- don't href/id when serializing
         resolver -- object to resolve href's
         wrapped -- put a wrapper element around it
-    '''
+    """
 
     # Clone returned data?
     copyit = 0
@@ -1545,10 +1545,10 @@ class Union(SimpleType):
             self.memberTypeCodes.append(typecode)
 
     def parse(self, elt, ps, **kw):
-        '''attempt to parse sequentially.  No way to know ahead of time
+        """attempt to parse sequentially.  No way to know ahead of time
         what this instance represents.  Must be simple type so it can
         not have attributes nor children, so this isn't too bad.
-        '''
+        """
         self.setMemberTypeCodes()
         (nsuri,typeName) = self.checkname(elt, ps)
 
