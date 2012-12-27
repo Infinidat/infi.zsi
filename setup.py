@@ -39,7 +39,7 @@ except:
 _packages = [ "ZSI", "ZSI.generate", "ZSI.wstools"]
 if sys.version_info[0:2] >= (2, 4):
     _packages.append("ZSI.twisted")
-    
+
 
 # setuptools specific logic
 additional_params = {}
@@ -57,7 +57,7 @@ else:
     additional_params['scripts'] = ["scripts/wsdl2py",]
 
 setup(
-    name="ZSI",
+    name="infi.ZSI",
     version=_version,
     license="Python",
     packages=_packages,
