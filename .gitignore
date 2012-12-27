@@ -1,0 +1,45 @@
+
+# generic
+*.tmp
+*.swp
+*.pyc
+*.pyo
+*.bak
+*.egg-info
+*.EGG-INFO
+.coverage
+.settings
+
+# eclipse
+.project
+.pydevproject
+
+# setuptools
+bin/
+build/
+dist/
+setup.py
+
+# buildout
+buildout.in.cfg
+.installed*.cfg
+.cache/
+eggs/
+develop-eggs/
+parts/
+build/
+dist/
+src/infi/hello/__version__.py
+.achievements
+
+# scm
+.bzr/
+.svn/
+.hg/
+
+
+src/infi/vendata/powertools/__version__.py
+.noseids
+ipython_log.py
+.codeintel
+powertools.sublime-*
