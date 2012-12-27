@@ -78,7 +78,7 @@ class SchemaReader:
         """
         for schemaLocation, val in schema.includes.items(): 
             if self._includes.has_key(schemaLocation):
-                schema.addIncludeSchema(schemaLocation, self._imports[schemaLocation])
+                schema.addIncludeSchema(self._imports[schemaLocation])
 
     def addSchemaByLocation(self, location, schema):
         """provide reader with schema document for a location.
@@ -515,15 +515,12 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
         item, path, name, ref = self, [], 'name', 'ref'
         while not isinstance(item,XMLSchema) and not isinstance(item,WSDLToolsAdapter):
             attr = item.getAttribute(name)
-            if not attr:
+            if attr is None:
                 attr = item.getAttribute(ref)
-                if not attr:
-                    path.append('<%s>' %(item.tag))
-                else: 
-                    path.append('<%s ref="%s">' %(item.tag, attr))
+                if attr is None: path.append('<%s>' %(item.tag))
+                else: path.append('<%s ref="%s">' %(item.tag, attr))
             else:
                 path.append('<%s name="%s">' %(item.tag,attr))
-
             item = item._parent()
         try:
             tns = item.getTargetNamespace()
@@ -539,10 +536,10 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
         parent = self
         targetNamespace = 'targetNamespace'
         tns = self.attributes.get(targetNamespace)
-        while not tns and parent and parent._parent is not None:
+        while not tns:
             parent = parent._parent()
             tns = parent.attributes.get(targetNamespace)
-        return tns or ''
+        return tns
 
     def getAttributeDeclaration(self, attribute):
         """attribute -- attribute with a QName value (eg. type).
@@ -580,22 +577,16 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
            attribute -- an information item attribute, with a QName value.
            collection -- collection in parent Schema instance to search.
         """
+        obj = None
         tdc = self.getAttributeQName(attribute)
-        if not tdc:
-            return
+        if tdc:
+            obj = self.getSchemaItem(collection, tdc.getTargetNamespace(), tdc.getName())
 
-        obj = self.getSchemaItem(collection, tdc.getTargetNamespace(), tdc.getName())
-        if obj: 
-            return obj
-
-#        raise SchemaError, 'No schema item "%s" in collection %s' %(tdc, collection)
-        return
+        return obj
 
     def getSchemaItem(self, collection, namespace, name):
         """returns object instance representing namespace, name,
-           or if does not exist return None if built-in, else
-           raise SchemaError.
-           
+           or if does not exist return None.
            namespace -- namespace item defined in.
            name -- name of item.
            collection -- collection in parent Schema instance to search.
@@ -611,14 +602,8 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
             return obj
         
         if not parent.imports.has_key(namespace):
-            if namespace in BUILT_IN_NAMESPACES:            
-                # built-in just return
-                # WARNING: expecting import if "redefine" or add to built-in namespace.
-                return
-            
-            raise SchemaError, 'schema "%s" does not import namespace "%s"' %(
-                parent.targetNamespace, namespace)
-            
+            return None
+        
         # Lazy Eval
         schema = parent.imports[namespace]
         if not isinstance(schema, XMLSchema):
@@ -627,10 +612,6 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
                 parent.imports[namespace] = schema
             
         if schema is None:
-            if namespace in BUILT_IN_NAMESPACES:
-                # built-in just return
-                return
-            
             raise SchemaError, 'no schema instance for imported namespace (%s).'\
                 %(namespace)
                 
@@ -667,14 +648,10 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
         """return requested attribute value or None
         """
         if type(attribute) in (list, tuple):
-            if len(attribute) != 2:
+             if len(attribute) != 2:
                 raise LookupError, 'To access attributes must use name or (namespace,name)'
 
-            ns_dict = self.attributes.get(attribute[0])
-            if ns_dict is None:
-                return None
-
-            return ns_dict.get(attribute[1])
+             return self.attributes.get(attribute[0]).get(attribute[1])
 
         return self.attributes.get(attribute)
 
@@ -1211,23 +1188,16 @@ class XMLSchema(XMLSchemaComponent):
                     slocd[import_ns] = schema
                     try:
                         tp.loadSchema(schema)
-                    except NoSchemaLocationWarning, ex:
+                    except SchemaError:
                         # Dependency declaration, hopefully implementation
                         # is aware of this namespace (eg. SOAP,WSDL,?)
-                        print "IMPORT: ", import_ns
-                        print ex
-                        del slocd[import_ns]
-                        continue
-                    except SchemaError, ex:
                         #warnings.warn(\
                         #    '<import namespace="%s" schemaLocation=?>, %s'\
                         #    %(import_ns, 'failed to load schema instance')
                         #)
-                        print ex
                         del slocd[import_ns]
-                        class _LazyEvalImport(str):
+                        class LazyEval(str):
                             '''Lazy evaluation of import, replace entry in self.imports.'''
-                            #attributes = dict(namespace=import_ns)
                             def getSchema(namespace):
                                 schema = slocd.get(namespace)
                                 if schema is None:
@@ -1242,7 +1212,7 @@ class XMLSchema(XMLSchemaComponent):
 
                                 return None
 
-                        self.imports[import_ns] = _LazyEvalImport(import_ns)
+                        self.imports[import_ns] = LazyEval(import_ns)
                         continue
                 else:           
                     tp._schema = schema
@@ -1361,8 +1331,7 @@ class XMLSchema(XMLSchemaComponent):
             self._schema = schema
 
             if not self.attributes.has_key('schemaLocation'):
-                raise NoSchemaLocationWarning('no schemaLocation attribute in import')
-
+                raise SchemaError, 'no schemaLocation'
             reader.loadFromURL(self.attributes.get('schemaLocation'), schema)
 
 
