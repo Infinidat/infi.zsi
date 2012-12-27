@@ -180,8 +180,8 @@ class ParsedSoap:
             if len(maybe):
                 self.body_root = maybe[0]
             else:
-                raise ParseException('No serialization root found',
-                        0, self.body, self.dom)
+                # empty body root - acceptable for messages without parameters
+                return
         if not _valid_encoding(self.body_root):
             raise ParseException("Invalid encoding", 0,
                     elt, self.dom)

@@ -199,8 +199,8 @@ class ServiceInterface:
         '''Returns operation name.
            action -- soapAction value
         '''
-        method = self.root.get(_get_element_nsuri_name(ps.body_root)) or \
-            self.soapAction.get(action)
+        method = self.soapAction.get(action) or \
+            self.root.get(_get_element_nsuri_name(ps.body_root))
         if method is None:
             raise UnknownRequestException, \
                 'failed to map request to a method: action(%s), root%s' %(action,_get_element_nsuri_name(ps.body_root))

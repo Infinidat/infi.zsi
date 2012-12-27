@@ -219,26 +219,33 @@ class ServiceModuleWriter:
             msgin = op.getInputMessage()
             msgin_name = TextProtect(msgin.name)
             method_name = self.getMethodName(op.name)
-
+            
+            # messages may not have input classes
+            has_request_object = len(op.getInputMessage().parts) > 0
+            
             m = sd.newMethod()
-            print >>m, '%sdef %s(self, ps, **kw):' %(self.getIndent(level=1), method_name)
+            print >>m, '%sdef %s(self, ps, **kw):' % (self.getIndent(level=1), method_name)
             if msgin is not None:
-                print >>m, '%srequest = ps.Parse(%s.typecode)' %(self.getIndent(level=2), msgin_name)
+                if has_request_object:
+                    print >>m, '%srequest = ps.Parse(%s.typecode)' %(self.getIndent(level=2), msgin_name)
+                else:
+                    print >>m, '%srequest = None' % (self.getIndent(level=2))
             else:
-                print >>m, '%s# NO input' %self.getIndent(level=2)
+                print >>m, '%s# NO input' % self.getIndent(level=2)
 
             msgout = op.getOutputMessage()
             if msgout is not None:
                 msgout_name = TextProtect(msgout.name)
-                print >>m, '%sreturn request,%s()' %(self.getIndent(level=2), msgout_name)
+                print >>m, '%sreturn request, %s()' %(self.getIndent(level=2), msgout_name)
             else:
                 print >>m, '%s# NO output' % self.getIndent(level=2)
-                print >>m, '%sreturn request,None' % self.getIndent(level=2)
+                print >>m, '%sreturn request, None' % self.getIndent(level=2)
 
             print >>m, ''
-            print >>m, '%ssoapAction[\'%s\'] = \'%s\'' %(self.getIndent(level=1), action_in, method_name)
-            print >>m, '%sroot[(%s.typecode.nspname,%s.typecode.pname)] = \'%s\'' \
-                     %(self.getIndent(level=1), msgin_name, msgin_name, method_name)
+            print >>m, '%ssoapAction[\'%s\'] = \'%s\'' % (self.getIndent(level=1), action_in, method_name)
+            if has_request_object:
+                print >>m, '%sroot[(%s.typecode.nspname, %s.typecode.pname)] = \'%s\'' \
+                         %(self.getIndent(level=1), msgin_name, msgin_name, method_name)
 
         return
 

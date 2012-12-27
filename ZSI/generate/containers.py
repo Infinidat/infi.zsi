@@ -867,8 +867,8 @@ class ServiceDocumentLiteralMessageContainer(ServiceContainerBase,
         # using underlying data structure to avoid phantom problem.
         # with message.parts.data.values() 
         if len(message.parts) == 0:
-            raise Wsdl2PythonError, 'must specify part for doc/lit msg'        
-        
+            content.mName = message.name
+            return
         p = None
         if soapBodyBind.parts is not None:
             if len(soapBodyBind.parts) > 1:
@@ -913,15 +913,16 @@ class ServiceDocumentLiteralMessageContainer(ServiceContainerBase,
         
         
         kw = KW.copy()
-        kw.update(dict(message=self.content.mName, nsuri=self.content.ns,
-                       name=self.content.pName))
+        if all(hasattr(self.content, kw) for kw in ["mName", "ns", "pName"]):
+            kw.update(dict(message=self.content.mName, nsuri=self.content.ns,
+                           name=self.content.pName))
+            self.writeArray(['%(message)s = GED("%(nsuri)s", "%(name)s").pyclass' %kw])
         
 #        kw['message'],kw['prefix'],kw['typecode'] = \
 #            self.content.mName, self.getNSAlias(), element_class_name(self.content.pName)
 #        
         # These messsages are just global element declarations
 #        self.writeArray(['%(message)s = %(prefix)s.%(typecode)s().pyclass' %kw])
-        self.writeArray(['%(message)s = GED("%(nsuri)s", "%(name)s").pyclass' %kw])
 
 class ServiceRPCEncodedMessageContainer(ServiceContainerBase, MessageContainerInterface):
     logger = _GetLogger("ServiceRPCEncodedMessageContainer")
