@@ -389,7 +389,7 @@ from writer import SoapWriter
 from parse import ParsedSoap
 from fault import Fault, \
     FaultFromActor, FaultFromException, FaultFromFaultMessage, \
-    FaultFromNotUnderstood, FaultFromZSIException
+    FaultFromNotUnderstood, FaultFromZSIException, FaultFromFaultException
 import TC
 TC.RegisterType(TC.String, minOccurs=0, nillable=False)
 TC.RegisterType(TC.URI, minOccurs=0, nillable=False)

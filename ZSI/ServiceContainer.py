@@ -5,7 +5,7 @@
 
 import urlparse, types, os, sys, cStringIO as StringIO, thread,re
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from ZSI import ParseException, FaultFromException, FaultFromZSIException, Fault
+from ZSI import ParseException, FaultFromException, FaultFromZSIException, Fault, FaultException
 from ZSI import _copyright, _seqtypes, _get_element_nsuri_name, resolvers
 from ZSI import _get_idstr
 from ZSI.address import Address
@@ -106,6 +106,8 @@ def _Dispatch(ps, server, SendResponse, SendFault, post, action, nsdict={}, **kw
             request,result = method(ps, address)
         else: 
             request,result = method(ps)
+    except FaultException, e:
+        return SendFault(FaultFromFaultException(e))
     except Exception, e:
         return SendFault(FaultFromException(e, 0, sys.exc_info()[2]), **kw)
 
