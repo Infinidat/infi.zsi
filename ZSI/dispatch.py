@@ -189,13 +189,14 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
     '''
     server_version = 'ZSI/1.1 ' + BaseHTTPRequestHandler.server_version
 
-    def send_xml(self, text, code=200):
+    def send_xml(self, text, code=200, action=None):
         '''Send some XML.
         '''
         self.send_response(code)
         
         if text:
-            self.send_header('Content-type', 'text/xml; charset="%s"' %UNICODE_ENCODING)
+            action_part = ('action="%s" ' % (action,)) if action is not None else ""
+            self.send_header('Content-type', 'text/soap+xml; %scharset="%s"' % (action_part, UNICODE_ENCODING))
             self.send_header('Content-Length', str(len(text)))
 
         self.end_headers()

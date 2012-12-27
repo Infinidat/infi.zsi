@@ -5,7 +5,8 @@
 
 import urlparse, types, os, sys, cStringIO as StringIO, thread,re
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from ZSI import ParseException, FaultFromException, FaultFromZSIException, Fault, FaultException
+from ZSI import ParseException
+from ZSI import FaultFromException, FaultFromZSIException, Fault, FaultException, FaultFromFaultException
 from ZSI import _copyright, _seqtypes, _get_element_nsuri_name, resolvers
 from ZSI import _get_idstr
 from ZSI.address import Address
@@ -116,7 +117,7 @@ def _Dispatch(ps, server, SendResponse, SendFault, post, action, nsdict={}, **kw
 
     # If No response just return.
     if result is None:
-        return SendResponse('', **kw)
+        return SendResponse('', action=action, **kw)
 
     sw = SoapWriter(nsdict=nsdict)
     try:
@@ -138,7 +139,7 @@ def _Dispatch(ps, server, SendResponse, SendFault, post, action, nsdict={}, **kw
 
     try:
         soapdata = str(sw)
-        return SendResponse(soapdata, **kw)
+        return SendResponse(soapdata, action=action, **kw)
     except Exception, e:
         return SendFault(FaultFromException(e, 0, sys.exc_info()[2]), **kw)
 
@@ -317,12 +318,20 @@ class SOAPRequestHandler(BaseSOAPRequestHandler):
         '''The POST command.
         action -- SOAPAction(HTTP header) or wsa:Action(SOAP:Header)
         '''
-        soapAction = self.headers.getheader('SOAPAction')
+        
+        content_type = self.headers.get("content-type", '')
+        action_matchobj = re.search("action=\"(urn:\w+)\"", content_type)
+        if action_matchobj is not None:
+            # SOAP 1.2
+            soapAction = action_matchobj.group(1)
+        else:
+            # SOAP 1.1
+            soapAction = self.headers.getheader('SOAPAction')
+            if soapAction:
+                soapAction = soapAction.strip('\'"')
         post = self.path
         if not post:
             raise PostNotSpecified, 'HTTP POST not specified in request'
-        if soapAction:
-            soapAction = soapAction.strip('\'"')
         post = post.strip('\'"')
         try:
             ct = self.headers['content-type']

@@ -212,3 +212,4 @@ class GLOBUS:
     TOKEN   = "http://www.globus.org/ws/2004/09/security/sc#GSSAPI_GSI_TOKEN"
 
 ZSI_SCHEMA_URI = 'http://www.zolera.com/schemas/ZSI/'
+SOAP.ENV = "http://www.w3.org/2003/05/soap-envelope"
