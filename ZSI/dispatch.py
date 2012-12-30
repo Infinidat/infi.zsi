@@ -8,11 +8,12 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from ZSI import *
 from ZSI import _child_elements, _copyright, _seqtypes, _find_arraytype, _find_type, resolvers 
 from ZSI.auth import _auth_tc, AUTH, ClientBinding
-
+from logging import getLogger
 
 # Client binding information is stored in a global. We provide an accessor
 # in case later on it's not.
 _client_binding = None
+logger = getLogger(__name__)
 
 def GetClientBinding():
     '''Return the client binding object.
@@ -189,9 +190,14 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
     '''
     server_version = 'ZSI/1.1 ' + BaseHTTPRequestHandler.server_version
 
+    def send_header(self, key, value):
+        logger.debug("Sending header: {}={}".format(key, value))
+        BaseHTTPRequestHandler.send_header(self, key, value)
+
     def send_xml(self, text, code=200, action=None):
         '''Send some XML.
         '''
+        logger.debug("Sending response: {}".format(code))
         self.send_response(code)
         
         if text:
@@ -202,6 +208,7 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         
         if text:
+            logger.debug("Sending text: {}".format(text))
             self.wfile.write(text)
 
         self.wfile.flush()

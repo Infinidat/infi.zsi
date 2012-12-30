@@ -5,6 +5,7 @@
 
 import urlparse, types, os, sys, cStringIO as StringIO, thread,re
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from logging import getLogger
 from ZSI import ParseException
 from ZSI import FaultFromException, FaultFromZSIException, Fault, FaultException, FaultFromFaultException
 from ZSI import _copyright, _seqtypes, _get_element_nsuri_name, resolvers
@@ -14,6 +15,7 @@ from ZSI.parse import ParsedSoap
 from ZSI.writer import SoapWriter
 from ZSI.dispatch import _ModPythonSendXML, _ModPythonSendFault, _CGISendXML, _CGISendFault
 from ZSI.dispatch import SOAPRequestHandler as BaseSOAPRequestHandler
+logger = getLogger(__name__)
 
 """
 Functions:
@@ -318,7 +320,10 @@ class SOAPRequestHandler(BaseSOAPRequestHandler):
         '''The POST command.
         action -- SOAPAction(HTTP header) or wsa:Action(SOAP:Header)
         '''
-        
+        logger.debug("Request Host: {}".format(self.client_address))
+        logger.debug("Request URI: {}".format(self.requestline))
+        for key, value in self.headers.items():
+            logger.debug("Request Header: {}: {}".format(key, value))
         content_type = self.headers.get("content-type", '')
         action_matchobj = re.search("action=\"(urn:\w+)\"", content_type)
         if action_matchobj is not None:
@@ -342,6 +347,7 @@ class SOAPRequestHandler(BaseSOAPRequestHandler):
             else:
                 length = int(self.headers['content-length'])
                 xml = self.rfile.read(length)
+                logger.debug("Request Body: {}".format(xml))
                 ps = ParsedSoap(xml)
         except ParseException, e:
             self.send_fault(FaultFromZSIException(e))
