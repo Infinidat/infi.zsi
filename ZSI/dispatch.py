@@ -190,6 +190,13 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
     '''
     server_version = 'ZSI/1.1 ' + BaseHTTPRequestHandler.server_version
 
+    def __init__(self, request, client_address, server):
+        self._additional_headers = list()
+        BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+
+    def add_additional_header(self, key, value):
+        self._additional_headers.append((key, value))
+
     def send_header(self, key, value):
         logger.debug("Sending header: {}={}".format(key, value))
         BaseHTTPRequestHandler.send_header(self, key, value)
@@ -204,6 +211,9 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
             action_part = ('action="%s" ' % (action,)) if action is not None else ""
             self.send_header('Content-type', 'text/soap+xml; %scharset="%s"' % (action_part, UNICODE_ENCODING))
             self.send_header('Content-Length', str(len(text)))
+
+        for key, value in self._additional_headers:
+            self.send_header(key, value)
 
         self.end_headers()
         
