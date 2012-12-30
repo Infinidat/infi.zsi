@@ -5,7 +5,7 @@
 
 from ZSI import _copyright, _get_idstr, ZSI_SCHEMA_URI
 from ZSI import _backtrace, _stringtypes, _seqtypes
-from ZSI.wstools.Utility import MessageInterface, ElementProxy
+from ZSI.wstools.Utility import MessageInterface, ElementProxy, ReservedNS
 from ZSI.wstools.Namespaces import XMLNS, SOAP, SCHEMA
 from ZSI.wstools.c14n import Canonicalize
 from ZSI.wstools.MIMEAttachment import MIMEMessage
@@ -13,26 +13,20 @@ from ZSI.wstools.MIMEAttachment import MIMEMessage
 import types
 
 _standard_ns = [ ('xml', XMLNS.XML), ('xmlns', XMLNS.BASE) ]
+_reserved_ns = ReservedNS()
 
-_reserved_ns = {
-        'soapenv': SOAP.ENV,
-        'soapenc': SOAP.ENC,
-        'ZSI': ZSI_SCHEMA_URI,
-        'xsd': SCHEMA.BASE,
-        'xsi': SCHEMA.BASE + '-instance',
-}
 
 class SoapWriter:
     '''SOAP output formatter.
        Instance Data:
-           memo -- memory for id/href 
+           memo -- memory for id/href
            envelope -- add Envelope?
-           encodingStyle -- 
+           encodingStyle --
            header -- add SOAP Header?
            outputclass -- ElementProxy class.
     '''
 
-    def __init__(self, envelope=True, encodingStyle=None, header=True, 
+    def __init__(self, envelope=True, encodingStyle=None, header=True,
     nsdict={}, outputclass=None, **kw):
         '''Initialize.
         '''
@@ -88,7 +82,7 @@ class SoapWriter:
         sure everything in Header unique (no #href).  Must call
         serialize first to create a document.
 
-        Parameters: 
+        Parameters:
             pyobjs -- instances to serialize in SOAP Header
             typecode -- default typecode
         '''
@@ -97,7 +91,7 @@ class SoapWriter:
         #header = self.dom.getElement(soap_env, 'Header')
         header = self._header
         if header is None:
-            header = self._header = self.dom.createAppendElement(soap_env, 
+            header = self._header = self.dom.createAppendElement(soap_env,
                                                                  'Header')
 
         typecode = getattr(pyobj, 'typecode', typecode)
@@ -110,20 +104,20 @@ class SoapWriter:
     def serialize(self, pyobj, typecode=None, root=None, header_pyobjs=(), **kw):
         '''Serialize a Python object to the output stream.
            pyobj -- python instance to serialize in body.
-           typecode -- typecode describing body 
+           typecode -- typecode describing body
            root -- soapenc:root
            header_pyobjs -- list of pyobj for soap header inclusion, each
               instance must specify the typecode attribute.
         '''
         self.body = None
-        if self.envelope: 
+        if self.envelope:
             soap_env = _reserved_ns['soapenv']
             self.dom.createDocument(soap_env, 'Envelope')
             for prefix, nsuri in _reserved_ns.items():
                 self.dom.setNamespaceAttribute(prefix, nsuri)
             self.writeNSdict(self.nsdict)
             if self.encodingStyle:
-                self.dom.setAttributeNS(soap_env, 'encodingStyle', 
+                self.dom.setAttributeNS(soap_env, 'encodingStyle',
                                         self.encodingStyle)
             if self.header:
                 self._header = self.dom.createAppendElement(soap_env, 'Header')
@@ -135,14 +129,14 @@ class SoapWriter:
         else:
             self.dom.createDocument(None,None)
 
-        if typecode is None: 
+        if typecode is None:
             typecode = pyobj.__class__.typecode
-            
+
         if self.body is None:
             elt = typecode.serialize(self.dom, self, pyobj, **kw)
         else:
             elt = typecode.serialize(self.body, self, pyobj, **kw)
-            
+
         if root is not None:
             if root not in [ 0, 1 ]:
                 raise ValueError, "soapenc root attribute not in [0,1]"
@@ -218,6 +212,6 @@ class SoapWriter:
 
     def __del__(self):
         if not self.closed: self.close()
-        
+
 
 if __name__ == '__main__': print _copyright

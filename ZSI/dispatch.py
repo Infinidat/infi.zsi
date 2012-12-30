@@ -9,6 +9,7 @@ from ZSI import *
 from ZSI import _child_elements, _copyright, _seqtypes, _find_arraytype, _find_type, resolvers 
 from ZSI.auth import _auth_tc, AUTH, ClientBinding
 from logging import getLogger
+from ZSI.wstools.Namespaces import SOAPENV11, SOAPENV12, SOAP
 
 # Client binding information is stored in a global. We provide an accessor
 # in case later on it's not.
@@ -192,6 +193,7 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
 
     def __init__(self, request, client_address, server):
         self._additional_headers = list()
+        self._soapAction = None
         BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 
     def add_additional_header(self, key, value):
@@ -201,15 +203,18 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
         logger.debug("Sending header: {}={}".format(key, value))
         BaseHTTPRequestHandler.send_header(self, key, value)
 
-    def send_xml(self, text, code=200, action=None):
+    def send_xml(self, text, code=200):
         '''Send some XML.
         '''
         logger.debug("Sending response: {}".format(code))
         self.send_response(code)
         
         if text:
-            action_part = ('action="%s" ' % (action,)) if action is not None else ""
-            self.send_header('Content-type', 'text/soap+xml; %scharset="%s"' % (action_part, UNICODE_ENCODING))
+            if SOAP.ENV == SOAPENV12:
+                action_part = ('action="%s" ' % (self._soapAction,)) if self._soapAction is not None else ""
+                self.send_header('Content-type', 'text/soap+xml; %scharset="%s"' % (action_part, UNICODE_ENCODING))
+            else:
+                self.send_header('Content-type', 'text/xml; charset="%s"' % (UNICODE_ENCODING))
             self.send_header('Content-Length', str(len(text)))
 
         for key, value in self._additional_headers:

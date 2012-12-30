@@ -119,7 +119,7 @@ def _Dispatch(ps, server, SendResponse, SendFault, post, action, nsdict={}, **kw
 
     # If No response just return.
     if result is None:
-        return SendResponse('', action=action, **kw)
+        return SendResponse('', **kw)
 
     sw = SoapWriter(nsdict=nsdict)
     try:
@@ -141,7 +141,7 @@ def _Dispatch(ps, server, SendResponse, SendFault, post, action, nsdict={}, **kw
 
     try:
         soapdata = str(sw)
-        return SendResponse(soapdata, action=action, **kw)
+        return SendResponse(soapdata, **kw)
     except Exception, e:
         return SendFault(FaultFromException(e, 0, sys.exc_info()[2]), **kw)
 
@@ -334,6 +334,7 @@ class SOAPRequestHandler(BaseSOAPRequestHandler):
             soapAction = self.headers.getheader('SOAPAction')
             if soapAction:
                 soapAction = soapAction.strip('\'"')
+        self._soapAction = soapAction
         post = self.path
         if not post:
             raise PostNotSpecified, 'HTTP POST not specified in request'

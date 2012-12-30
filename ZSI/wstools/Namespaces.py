@@ -212,4 +212,15 @@ class GLOBUS:
     TOKEN   = "http://www.globus.org/ws/2004/09/security/sc#GSSAPI_GSI_TOKEN"
 
 ZSI_SCHEMA_URI = 'http://www.zolera.com/schemas/ZSI/'
-SOAP.ENV = "http://www.w3.org/2003/05/soap-envelope"
+
+
+SOAPENV11 = SOAP.ENV
+SOAPENV12 = "http://www.w3.org/2003/05/soap-envelope"
+
+from threading import local
+_local_soapenv = local()
+_local_soapenv.env = SOAPENV12
+def get_soapenv(*args, **kwargs):
+    return _local_soapenv.env
+SOAP.ENV = property(get_soapenv)
+SOAP = SOAP()
