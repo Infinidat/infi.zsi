@@ -91,12 +91,12 @@ class ParsedSoap:
 
         # And that one child must be the Envelope
         elt = c[0]
-        
+
         if elt.namespaceURI == SOAPENV11:
             SOAP.ENV = SOAPENV11
         elif elt.namespaceURI == SOAPENV12:
             SOAP.ENV = SOAPENV12
-        
+
         if elt.localName != "Envelope" \
         or elt.namespaceURI != SOAP.ENV:
             raise ParseException('Document has "' + elt.localName + \
@@ -121,7 +121,7 @@ class ParsedSoap:
         elt = c[0]
         if elt.localName == "Header" \
         and elt.namespaceURI == SOAP.ENV:
-            self._check_for_legal_children("Header", elt)
+            self._check_for_legal_children("Header", elt, 0)
             self._check_for_pi_nodes(_children(elt), 1)
             self.header = c.pop(0)
             self.header_elements = _child_elements(self.header)
@@ -216,7 +216,7 @@ class ParsedSoap:
             if t != _Node.ELEMENT_NODE:
                 if t == _Node.TEXT_NODE and n.nodeValue.strip() == "":
                     continue
-                raise ParseException("Non-element child in " + name, 
+                raise ParseException("Non-element child in " + name,
                         inheader, elt, self.dom)
             if mustqualify and not n.namespaceURI:
                 raise ParseException('Unqualified element "' + \
@@ -356,7 +356,7 @@ class ParsedSoap:
         lenofwhat = len(ofwhat)
         c, crange = self.header_elements[:], range(len(self.header_elements))
         for i,what in [ (i, ofwhat[i]) for i in range(lenofwhat) ]:
-            if isinstance(what, AnyElement): 
+            if isinstance(what, AnyElement):
                 raise EvaluateException, 'not supporting <any> as child of soapenc:Header'
 
             v = []
