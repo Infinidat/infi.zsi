@@ -316,10 +316,37 @@ class WSAResource(ServiceSOAPBinding):
 class SOAPRequestHandler(BaseSOAPRequestHandler):
     '''SOAP handler.
     '''
+    
+    def _read_chunk_size(self):
+        current_size = ""
+        while '\n' not in current_size:
+            current_size += self.rfile.read(1)
+        current_size = int(current_size, 16)
+        return current_size
+    
+    def _fix_chunked_encoding(self):
+        from StringIO import StringIO
+        if self.headers.get('transfer-encoding', '') != 'chunked':
+            return
+        full_data = ""
+        while True:
+            current_size = self._read_chunk_size()
+            if current_size == 0:
+                break
+            full_data += self.rfile.read(current_size)
+            self.rfile.read(2)  # CRLF after chunk
+        
+        self.rfile = StringIO(full_data)
+        self.headers['content-length'] = str(len(full_data))
+        logger.debug('VASA --> ' + full_data)
+        return full_data
+    
     def do_POST(self):
         '''The POST command.
         action -- SOAPAction(HTTP header) or wsa:Action(SOAP:Header)
         '''
+        self._fix_chunked_encoding()
+        
         logger.debug("Request Host: {}".format(self.client_address))
         logger.debug("Request URI: {}".format(self.requestline))
         for key, value in self.headers.items():
