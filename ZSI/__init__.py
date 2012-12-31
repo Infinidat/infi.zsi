@@ -363,9 +363,12 @@ class EvaluateException(ZSIException):
 class FaultException(ZSIException):
     '''Exception raised when a fault is received.
     '''
+    Client = "soapenv:Client"
+    Server = "soapenv:Server"
 
-    def __init__(self, fault):
+    def __init__(self, fault, code=Client):
         self.fault = fault
+        self.code = code
 
     def __str__(self):
         return str(self.fault)

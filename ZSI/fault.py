@@ -259,6 +259,6 @@ def FaultFromFaultMessage(ps):
                 pyobj.faultactor, detailany)
 
 def FaultFromFaultException(e):
-    return Fault(Fault.Client, e.fault.typecode.pname, detail=e.fault)
+    return Fault(faultcode=e.code, faultstring=e.fault.typecode.pname, detail=e.fault)
 
 if __name__ == '__main__': print _copyright
