@@ -338,7 +338,6 @@ class SOAPRequestHandler(BaseSOAPRequestHandler):
         
         self.rfile = StringIO(full_data)
         self.headers['content-length'] = str(len(full_data))
-        logger.debug('VASA --> ' + full_data)
         return full_data
     
     def do_POST(self):
