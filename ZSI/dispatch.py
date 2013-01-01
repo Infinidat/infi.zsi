@@ -6,7 +6,7 @@
 import types, os, sys
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from ZSI import *
-from ZSI import _child_elements, _copyright, _seqtypes, _find_arraytype, _find_type, resolvers 
+from ZSI import _child_elements, _copyright, _seqtypes, _find_arraytype, _find_type, resolvers
 from ZSI.auth import _auth_tc, AUTH, ClientBinding
 from logging import getLogger
 from ZSI.wstools.Namespaces import SOAPENV11, SOAPENV12, SOAP
@@ -22,14 +22,14 @@ def GetClientBinding():
     return _client_binding
 
 gettypecode = lambda mod,e: getattr(mod, str(e.localName)).typecode
-def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None, 
+def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None,
               gettypecode=gettypecode, rpc=False, docstyle=False, **kw):
     '''Find a handler for the SOAP request in ps; search modules.
     Call SendResponse or SendFault to send the reply back, appropriately.
 
     Behaviors:
         default -- Call "handler" method with pyobj representation of body root, and return
-            a self-describing request (w/typecode).  Parsing done via a typecode from 
+            a self-describing request (w/typecode).  Parsing done via a typecode from
             typesmodule, or Any.
 
         docstyle -- Call "handler" method with ParsedSoap instance and parse result with an
@@ -37,7 +37,7 @@ def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None,
 
         rpc -- Specify RPC wrapper of result. Behavior, ignore body root (RPC Wrapper)
            of request, parse all "parts" of message via individual typecodes.  Expect
-           the handler to return the parts of the message, whether it is a dict, single instance, 
+           the handler to return the parts of the message, whether it is a dict, single instance,
            or a list try to serialize it as a Struct but if this is not possible put it in an Array.
            Parsing done via a typecode from typesmodule, or Any.
 
@@ -208,7 +208,7 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
         '''
         logger.debug("Sending response: {}".format(code))
         self.send_response(code)
-        
+
         if text:
             if SOAP.ENV == SOAPENV12:
                 action_part = ('action="%s" ' % (self._soapAction,)) if self._soapAction is not None else ""
@@ -221,7 +221,7 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
             self.send_header(key, value)
 
         self.end_headers()
-        
+
         if text:
             logger.debug("Sending text: {}".format(text))
             self.wfile.write(text)
@@ -294,7 +294,7 @@ def AsHandler(request=None, modules=None, **kw):
     ps = ParsedSoap(request)
     kw['request'] = request
     _Dispatch(ps, modules, _ModPythonSendXML, _ModPythonSendFault, **kw)
-    
+
 def AsJonPy(request=None, modules=None, **kw):
     '''Dispatch within a jonpy CGI/FastCGI script.
     '''
