@@ -366,9 +366,10 @@ class FaultException(ZSIException):
     Client = "soapenv:Client"
     Server = "soapenv:Server"
 
-    def __init__(self, fault, code=Client):
+    def __init__(self, fault, code=Client, string=None):
         self.fault = fault
         self.code = code
+        self.string = string or fault.typecode.pname
 
     def __str__(self):
         return str(self.fault)
