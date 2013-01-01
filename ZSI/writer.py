@@ -130,7 +130,10 @@ class SoapWriter:
             self.dom.createDocument(None,None)
 
         if typecode is None:
-            typecode = pyobj.__class__.typecode
+            if hasattr(pyobj.__class__, "typecode"):
+                typecode = pyobj.__class__.typecode
+            else:
+                typecode = pyobj.__class__.get_typecode()  # hack for FaultType
 
         if self.body is None:
             elt = typecode.serialize(self.dom, self, pyobj, **kw)

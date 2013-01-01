@@ -28,19 +28,18 @@ class FaultType:
         self.faultstring= faultstring
         self.faultactor = faultactor
         self.detail = detail
-        
-FaultType.typecode = \
-    Struct(FaultType,
-        [QName(pname='faultcode'), 
-         String(pname='faultstring'),
-         URI(pname=(SOAP.ENV,'faultactor'), minOccurs=0),
-         Detail.typecode,
-         AnyElement(aname='any',minOccurs=0, maxOccurs=UNBOUNDED, processContents="lax"),
-        ], 
-        pname=(SOAP.ENV,'Fault'), 
-        inline=True,
-        hasextras=0, 
-    )
+        self.typecode = self.get_typecode()
+
+    @classmethod
+    def get_typecode(cls):
+        return Struct(FaultType,
+                      [QName(pname='faultcode'), String(pname='faultstring'),
+                       URI(pname=(SOAP.ENV, 'faultactor'), minOccurs=0), Detail.typecode,
+                       AnyElement(aname='any',minOccurs=0, maxOccurs=UNBOUNDED, processContents="lax"),
+                       ],
+                      pname=(SOAP.ENV,'Fault'),
+                      inline=True,
+                      hasextras=0)
 
 class ZSIHeaderDetail:
     def __init__(self, detail):
@@ -250,7 +249,7 @@ def FaultFromException(ex, inheader, tb=None, actor=None):
 def FaultFromFaultMessage(ps):
     '''Parse the message as a fault.
     '''
-    pyobj = ps.Parse(FaultType.typecode)
+    pyobj = ps.Parse(FaultType.get_typecode())
 
     if pyobj.detail == None:  detailany = None
     else:  detailany = pyobj.detail.any
