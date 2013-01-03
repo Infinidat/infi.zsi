@@ -10,7 +10,7 @@ from ZSI import _copyright, _children, _attrs, _child_elements, _stringtypes, \
 from ZSI.TC import AnyElement
 import types
 
-from ZSI.wstools.Namespaces import SOAP, XMLNS, SOAPENV11, SOAPENV12
+from ZSI.wstools.Namespaces import SOAP, XMLNS, SOAPENV11, SOAPENV12, set_soapenv
 from ZSI.wstools.Utility import SplitQName
 
 _find_actor = lambda E: E.getAttributeNS(SOAP.ENV, "actor") or None
@@ -93,9 +93,9 @@ class ParsedSoap:
         elt = c[0]
 
         if elt.namespaceURI == SOAPENV11:
-            SOAP.ENV = SOAPENV11
+            set_soapenv(SOAPENV11)
         elif elt.namespaceURI == SOAPENV12:
-            SOAP.ENV = SOAPENV12
+            set_soapenv(SOAPENV12)
 
         if elt.localName != "Envelope" \
         or elt.namespaceURI != SOAP.ENV:

@@ -222,5 +222,7 @@ _local_soapenv = local()
 _local_soapenv.env = SOAPENV12
 def get_soapenv(*args, **kwargs):
     return _local_soapenv.env
+def set_soapenv(new_value):
+    _local_soapenv.env = new_value
 SOAP.ENV = property(get_soapenv)
 SOAP = SOAP()
