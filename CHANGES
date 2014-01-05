@@ -1,3 +1,6 @@
+Change for 2.2.0 released 05-Jan-2014:
+    -   Just a version bump to play nice with PIP
+
 Change for xxx released xxx:
     -   Make XMLSchema.py work in cases where threading isn't built in
     -   Add client-side Cookie Support (Jorgen Frojk Kjaersgaard)
