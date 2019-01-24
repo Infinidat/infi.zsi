@@ -75,18 +75,21 @@ def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None,
             try:
                 arg = tc.parse(ps.body_root, ps)
             except EvaluateException, ex:
+                logger.exception("Excetpion in ZSI Dispatch")
                 SendFault(FaultFromZSIException(ex), **kw)
                 return
 
             try:
                 result = handler(arg)
             except Exception,ex:
+                logger.exception("Excetpion in ZSI Dispatch")
                 SendFault(FaultFromZSIException(ex), **kw)
                 return
 
             try:
                 tc = result.typecode
             except AttributeError,ex:
+                logger.exception("Excetpion in ZSI Dispatch")
                 SendFault(FaultFromZSIException(ex), **kw)
                 return
 
@@ -101,6 +104,7 @@ def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None,
                 try:
                     kwargs[str(e.localName)] = tc.parse(e, ps)
                 except EvaluateException, ex:
+                    logger.exception("Excetpion in ZSI Dispatch")
                     SendFault(FaultFromZSIException(ex), **kw)
                     return
 
@@ -129,6 +133,7 @@ def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None,
                 try: arg = [ tc.parse(e, ps) for e in data ]
                 except EvaluateException, e:
                     #SendFault(FaultFromZSIException(e), **kw)
+                    logger.exception("Excetpion in ZSI Dispatch")
                     SendFault(RuntimeError("THIS IS AN ARRAY: %s" %isarray))
                     return
 
@@ -136,6 +141,7 @@ def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None,
             else:
                 try: kwarg = dict([ (str(e.localName),tc.parse(e, ps)) for e in data ])
                 except EvaluateException, e:
+                    logger.exception("Excetpion in ZSI Dispatch")
                     SendFault(FaultFromZSIException(e), **kw)
                     return
 
@@ -149,9 +155,11 @@ def _Dispatch(ps, modules, SendResponse, SendFault, nsdict={}, typesmodule=None,
         sw.serialize(result, tc)
         return SendResponse(str(sw), **kw)
     except Fault, e:
+        logger.exception("Excetpion in ZSI Dispatch")
         return SendFault(e, **kw)
     except Exception, e:
         # Something went wrong, send a fault.
+        logger.exception("Excetpion in ZSI Dispatch")
         return SendFault(FaultFromException(e, 0, sys.exc_info()[2]), **kw)
 
 
@@ -246,10 +254,12 @@ class SOAPRequestHandler(BaseHTTPRequestHandler):
                 length = int(self.headers['content-length'])
                 ps = ParsedSoap(self.rfile.read(length))
         except ParseException, e:
+            logger.exception("ParseException during parsing of SOAP request")
             self.send_fault(FaultFromZSIException(e))
             return
         except Exception, e:
             # Faulted while processing; assume it's in the header.
+            logger.exception("Exception during parsing of SOAP request")
             self.send_fault(FaultFromException(e, 1, sys.exc_info()[2]))
             return
 
